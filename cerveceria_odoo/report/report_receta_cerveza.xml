@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="action_report_receta_cerveza" model="ir.actions.report">
+        <field name="name">Ficha de Receta de Cerveza</field>
+        <field name="model">cerveceria.receta</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">cerveceria_odoo.report_receta_cerveza_doc</field>
+        <field name="report_file">cerveceria_odoo.report_receta_cerveza_doc</field>
+        <field name="binding_model_id" ref="model_cerveceria_receta"/>
+        <field name="binding_type">report</field>
+        <field name="print_report_name">'Receta_' + object.codigo</field>
+        <field name="paperformat_id" ref="base.paperformat_euro"/>
+    </record>
+
+    <template id="report_receta_cerveza_doc">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="receta">
+                <t t-call="web.external_layout">
+                    <div class="page">
+
+                        <!-- ══ BANDA SUPERIOR ══ -->
+                        <div style="background:#ffffff; border:1px solid #ddd; border-radius:4px; margin:0 0 20px 0; padding:18px 24px 14px 24px;">
+                            <div class="row">
+                                <div class="col-8">
+                                    <div style="color:#b9824a; font-size:10px; letter-spacing:3px; text-transform:uppercase; margin-bottom:4px;">Cervecería Artesanal · Documento Técnico Oficial</div>
+                                    <div style="color:#5c3317; font-size:22px; font-weight:bold; line-height:1.2;">
+                                        <t t-esc="receta.name"/>
+                                    </div>
+                                    <div style="margin-top:6px; display:flex; gap:8px; align-items:center;">
+                                        <span style="background:#f4a261; color:#5c3317; padding:2px 12px; border-radius:3px; font-size:11px; font-weight:bold;">
+                                            <t t-esc="receta.estilo_cerveza"/>
+                                        </span>
+                                        <span style="color:#777; font-size:10px;">
+                                            Base: <t t-esc="receta.volumen_produccion"/> L · <t t-esc="receta.lotes_count"/> lotes producidos
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="col-4 text-right" style="display:flex; flex-direction:column; align-items:flex-end; justify-content:center; gap:6px;">
+                                    <div style="text-align:right;">
+                                        <div style="color:#b9824a; font-size:9px; letter-spacing:2px; text-transform:uppercase;">Código de Receta</div>
+                                        <div style="color:#5c3317; font-size:20px; font-weight:bold; letter-spacing:1px;"><t t-esc="receta.codigo"/></div>
+                                    </div>
+                                    <div>
+                                        <span style="background:#5c3317; color:#f4a261; padding:3px 12px; border-radius:3px; font-size:10px; font-weight:bold; text-transform:uppercase; letter-spacing:1px;">
+                                            <t t-esc="receta.estado"/>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ══ PARÁMETROS TÉCNICOS EN UNA FILA COMPACTA ══ -->
+                        <div style="margin-bottom:18px;">
+                            <table class="table table-sm table-bordered" style="font-size:11px; margin:0; text-align:center;">
+                                <thead>
+                                    <tr style="background:#5c3317; color:white;">
+                                        <th class="text-center">OG</th>
+                                        <th class="text-center">FG</th>
+                                        <th class="text-center">ABV</th>
+                                        <th class="text-center">IBU</th>
+                                        <th class="text-center">SRM</th>
+                                        <th class="text-center">Vol. Base</th>
+                                        <th class="text-center">Mac. (min)</th>
+                                        <th class="text-center">Cocc. (min)</th>
+                                        <th class="text-center">Ferm. (días)</th>
+                                        <th class="text-center">Mad. (días)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td style="font-size:14px; font-weight:bold; color:#5c3317;"><t t-esc="receta.densidad_original or '—'"/></td>
+                                        <td style="font-size:14px; font-weight:bold; color:#5c3317;"><t t-esc="receta.densidad_final or '—'"/></td>
+                                        <td style="font-size:14px; font-weight:bold; color:#5c3317; border:2px solid #5c3317;"><t t-esc="'%.1f' % receta.abv"/>%</td>
+                                        <td style="font-size:14px; font-weight:bold; color:#5c3317;"><t t-esc="receta.ibu or '—'"/></td>
+                                        <td style="font-size:14px; font-weight:bold; color:#5c3317;"><t t-esc="receta.srm or '—'"/></td>
+                                        <td style="font-size:14px; font-weight:bold; color:#5c3317;"><t t-esc="receta.volumen_produccion"/><span style="font-size:9px;">L</span></td>
+                                        <td style="font-size:14px; font-weight:bold; color:#5c3317;"><t t-esc="receta.tiempo_macerado or '—'"/></td>
+                                        <td style="font-size:14px; font-weight:bold; color:#5c3317;"><t t-esc="receta.tiempo_coccion or '—'"/></td>
+                                        <td style="font-size:14px; font-weight:bold; color:#5c3317;"><t t-esc="receta.tiempo_fermentacion or '—'"/></td>
+                                        <td style="font-size:14px; font-weight:bold; color:#5c3317;"><t t-esc="receta.tiempo_madurado or '—'"/></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- ══ INGREDIENTES ══ -->
+                        <t t-if="receta.ingrediente_ids">
+                            <div style="margin-bottom:18px;">
+                                <div style="font-size:11px; font-weight:bold; color:#5c3317; text-transform:uppercase; letter-spacing:1px; border-left:3px solid #f4a261; padding-left:8px; margin-bottom:8px;">
+                                    Lista de Ingredientes · Base <t t-esc="receta.volumen_produccion"/> L
+                                </div>
+                                <table class="table table-sm table-bordered" style="font-size:11px; margin:0;">
+                                    <thead>
+                                        <tr style="background:#5c3317; color:white;">
+                                            <th style="width:24px; text-align:center;">#</th>
+                                            <th>Ingrediente</th>
+                                            <th style="width:80px;">Tipo</th>
+                                            <th style="width:70px; text-align:right;">Cantidad</th>
+                                            <th style="width:50px;">Unidad</th>
+                                            <th style="width:90px;">Adición</th>
+                                            <th>Notas</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="receta.ingrediente_ids" t-as="ing">
+                                            <tr>
+                                                <td style="text-align:center; color:#888;"><t t-esc="ing_index + 1"/></td>
+                                                <td><strong><t t-esc="ing.product_id.name"/></strong></td>
+                                                <td><span style="background:#f0e8e0; color:#5c3317; padding:1px 5px; border-radius:2px; font-size:9px; font-weight:bold;"><t t-esc="ing.tipo_ingrediente"/></span></td>
+                                                <td style="text-align:right; font-weight:bold;"><t t-esc="ing.cantidad"/></td>
+                                                <td style="color:#888;"><t t-esc="ing.uom_id.name"/></td>
+                                                <td style="color:#666;"><t t-esc="ing.momento_adicion or '—'"/></td>
+                                                <td style="color:#999; font-size:10px; font-style:italic;"><t t-esc="ing.notas or ''"/></td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </t>
+
+                        <!-- ══ DESCRIPCIÓN ══ -->
+                        <t t-if="receta.descripcion">
+                            <div style="margin-bottom:18px;">
+                                <div style="font-size:11px; font-weight:bold; color:#5c3317; text-transform:uppercase; letter-spacing:1px; border-left:3px solid #f4a261; padding-left:8px; margin-bottom:8px;">Descripción</div>
+                                <p style="background:#fef3e2; border-left:3px solid #f4a261; padding:10px 14px; font-style:italic; color:#555; margin:0; font-size:11px; border-radius:0 4px 4px 0;">
+                                    <t t-esc="receta.descripcion"/>
+                                </p>
+                            </div>
+                        </t>
+
+                        <!-- ══ FIRMAS ══ -->
+                        <div class="row" style="margin-top:32px;">
+                            <div class="col-4 text-center">
+                                <div style="border-top:1.5px solid #5c3317; padding-top:6px; margin-top:40px;">
+                                    <div style="font-size:10px; color:#5c3317; font-weight:bold; text-transform:uppercase; letter-spacing:1px;">Maestro Cervecero</div>
+                                </div>
+                            </div>
+                            <div class="col-4 text-center">
+                                <div style="border-top:1.5px solid #5c3317; padding-top:6px; margin-top:40px;">
+                                    <div style="font-size:10px; color:#5c3317; font-weight:bold; text-transform:uppercase; letter-spacing:1px;">Control de Calidad</div>
+                                </div>
+                            </div>
+                            <div class="col-4 text-center">
+                                <div style="border-top:1.5px solid #5c3317; padding-top:6px; margin-top:40px;">
+                                    <div style="font-size:10px; color:#5c3317; font-weight:bold; text-transform:uppercase; letter-spacing:1px;">Gerencia</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ══ PIE ══ -->
+                        <div style="text-align:center; font-size:8px; color:#bbb; border-top:1px solid #eee; padding-top:6px; margin-top:16px; letter-spacing:1px;">
+                            <t t-esc="res_company.name"/> · CERVECERÍA ARTESANAL · FICHA TÉCNICA DE RECETA · <t t-esc="receta.codigo"/>
+                        </div>
+
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

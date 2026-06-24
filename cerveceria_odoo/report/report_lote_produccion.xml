@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="action_report_lote_produccion" model="ir.actions.report">
+        <field name="name">Ficha de Lote de Producción</field>
+        <field name="model">cerveceria.lote</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">cerveceria_odoo.report_lote_produccion_doc</field>
+        <field name="report_file">cerveceria_odoo.report_lote_produccion_doc</field>
+        <field name="binding_model_id" ref="model_cerveceria_lote"/>
+        <field name="binding_type">report</field>
+        <field name="print_report_name">'Lote_' + object.name</field>
+        <field name="paperformat_id" ref="base.paperformat_euro"/>
+    </record>
+
+    <template id="report_lote_produccion_doc">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="lote">
+                <t t-call="web.external_layout">
+                    <div class="page">
+
+                        <!-- ══ BANDA SUPERIOR ══ -->
+                        <div style="background:#ffffff; border:1px solid #ddd; border-radius:4px; margin:0 0 20px 0; padding:18px 24px 14px 24px;">
+                            <div class="row">
+                                <div class="col-9">
+                                    <div style="color:#b9824a; font-size:10px; letter-spacing:3px; text-transform:uppercase; margin-bottom:4px;">Cervecería Artesanal · Registro de Producción</div>
+                                    <div style="color:#5c3317; font-size:22px; font-weight:bold; line-height:1.2;">
+                                        <t t-esc="lote.receta_id.name"/>
+                                        <t t-if="lote.descripcion">
+                                            <span style="font-size:14px; font-weight:normal; color:#888;"> — <t t-esc="lote.descripcion"/></span>
+                                        </t>
+                                    </div>
+                                    <div style="margin-top:6px; display:flex; gap:8px; align-items:center;">
+                                        <span style="background:#f4a261; color:#5c3317; padding:2px 12px; border-radius:3px; font-size:11px; font-weight:bold;">
+                                            <t t-esc="lote.estilo_cerveza"/>
+                                        </span>
+                                        <span style="color:#777; font-size:10px;">
+                                            Maestro Cervecero: <strong style="color:#5c3317;"><t t-esc="lote.responsable_id.name"/></strong>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="col-3 text-right" style="display:flex; flex-direction:column; align-items:flex-end; justify-content:center; gap:6px;">
+                                    <div style="text-align:right;">
+                                        <div style="color:#b9824a; font-size:9px; letter-spacing:2px; text-transform:uppercase;">Nº de Lote</div>
+                                        <div style="color:#5c3317; font-size:18px; font-weight:bold; letter-spacing:1px;"><t t-esc="lote.name"/></div>
+                                    </div>
+                                    <div>
+                                        <t t-set="estado_bg" t-value="'#2a9d8f' if lote.estado == 'liberado' else '#e76f51' if lote.estado == 'cancelado' else '#e9c46a'"/>
+                                        <t t-set="estado_color" t-value="'white' if lote.estado in ('liberado','cancelado') else '#5c3317'"/>
+                                        <span t-att-style="'background:' + estado_bg + '; color:' + estado_color + '; padding:3px 12px; border-radius:3px; font-size:10px; font-weight:bold; text-transform:uppercase; letter-spacing:1px;'">
+                                            <t t-esc="lote.estado"/>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ══ MÉTRICAS CLAVE ══ -->
+                        <div style="margin-bottom:18px;">
+                            <table class="table table-sm table-bordered" style="font-size:11px; margin:0; text-align:center;">
+                                <thead>
+                                    <tr style="background:#5c3317; color:white;">
+                                        <th class="text-center">Planificado</th>
+                                        <th class="text-center">Real</th>
+                                        <th class="text-center">Rendimiento</th>
+                                        <th class="text-center">ABV Real</th>
+                                        <th class="text-center">IBU Real</th>
+                                        <th class="text-center">T° Ferm.</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td style="font-size:15px; font-weight:bold; color:#5c3317;"><t t-esc="lote.volumen_planificado"/><span style="font-size:9px;">L</span></td>
+                                        <td style="font-size:15px; font-weight:bold; color:#5c3317; border:2px solid #5c3317;"><t t-esc="lote.volumen_real or '—'"/><t t-if="lote.volumen_real"><span style="font-size:9px;">L</span></t></td>
+                                        <td style="font-size:15px; font-weight:bold; color:#5c3317;"><t t-esc="'%.0f' % lote.rendimiento"/>%</td>
+                                        <td style="font-size:15px; font-weight:bold; color:#5c3317;"><t t-esc="'%.2f' % lote.abv_real if lote.abv_real else '—'"/><t t-if="lote.abv_real"><span style="font-size:9px;">%</span></t></td>
+                                        <td style="font-size:15px; font-weight:bold; color:#5c3317;"><t t-esc="lote.ibu_real or '—'"/></td>
+                                        <td style="font-size:15px; font-weight:bold; color:#5c3317;"><t t-esc="lote.temperatura_fermentacion or '—'"/><t t-if="lote.temperatura_fermentacion"><span style="font-size:9px;">°C</span></t></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- ══ FECHAS Y DENSIDADES ══ -->
+                        <div class="row" style="margin-bottom:16px;">
+                            <div class="col-5">
+                                <div style="font-size:11px; font-weight:bold; color:#5c3317; text-transform:uppercase; letter-spacing:1px; border-left:3px solid #f4a261; padding-left:8px; margin-bottom:6px;">Fechas</div>
+                                <table class="table table-sm table-bordered" style="font-size:11px; margin:0;">
+                                    <tbody>
+                                        <tr>
+                                            <td style="background:#fef3e2; width:110px;"><strong>Inicio</strong></td>
+                                            <td><t t-esc="lote.fecha_inicio.strftime('%d/%m/%Y') if lote.fecha_inicio else '—'"/></td>
+                                        </tr>
+                                        <tr>
+                                            <td style="background:#fef3e2;"><strong>Fin Estimado</strong></td>
+                                            <td><t t-esc="lote.fecha_fin_estimada.strftime('%d/%m/%Y') if lote.fecha_fin_estimada else '—'"/></td>
+                                        </tr>
+                                        <tr>
+                                            <td style="background:#fef3e2;"><strong>Fin Real</strong></td>
+                                            <td><t t-esc="lote.fecha_fin_real.strftime('%d/%m/%Y') if lote.fecha_fin_real else '—'"/></td>
+                                        </tr>
+                                        <tr>
+                                            <td style="background:#fef3e2;"><strong>Envasado</strong></td>
+                                            <td><t t-esc="lote.fecha_envasado.strftime('%d/%m/%Y') if lote.fecha_envasado else '—'"/></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="col-7">
+                                <div style="font-size:11px; font-weight:bold; color:#5c3317; text-transform:uppercase; letter-spacing:1px; border-left:3px solid #f4a261; padding-left:8px; margin-bottom:6px;">Densidades · Planificado vs Real</div>
+                                <table class="table table-sm table-bordered" style="font-size:11px; margin:0;">
+                                    <thead>
+                                        <tr style="background:#5c3317; color:white;">
+                                            <th></th>
+                                            <th class="text-center">OG</th>
+                                            <th class="text-center">FG</th>
+                                            <th class="text-center">ABV (%)</th>
+                                            <th class="text-center">IBU</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td style="background:#fef3e2;"><strong>Receta</strong></td>
+                                            <td class="text-center"><t t-esc="lote.receta_id.densidad_original or '—'"/></td>
+                                            <td class="text-center"><t t-esc="lote.receta_id.densidad_final or '—'"/></td>
+                                            <td class="text-center"><t t-esc="'%.2f' % lote.receta_id.abv if lote.receta_id.abv else '—'"/></td>
+                                            <td class="text-center"><t t-esc="lote.receta_id.ibu or '—'"/></td>
+                                        </tr>
+                                        <tr style="background:#f0faf9;">
+                                            <td style="background:#5c3317; color:#f4a261;"><strong>Real</strong></td>
+                                            <td class="text-center"><strong><t t-esc="lote.densidad_original_real or '—'"/></strong></td>
+                                            <td class="text-center"><strong><t t-esc="lote.densidad_final_real or '—'"/></strong></td>
+                                            <td class="text-center"><strong><t t-esc="'%.2f' % lote.abv_real if lote.abv_real else '—'"/></strong></td>
+                                            <td class="text-center"><strong><t t-esc="lote.ibu_real or '—'"/></strong></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- ══ TRAZABILIDAD DE INSUMOS ══ -->
+                        <t t-if="lote.trazabilidad_ids">
+                            <div style="margin-bottom:16px;">
+                                <div style="font-size:11px; font-weight:bold; color:#5c3317; text-transform:uppercase; letter-spacing:1px; border-left:3px solid #f4a261; padding-left:8px; margin-bottom:6px;">
+                                    Trazabilidad de Insumos <span style="color:#888; font-weight:normal;">(<t t-esc="len(lote.trazabilidad_ids)"/> registros)</span>
+                                </div>
+                                <table class="table table-sm table-bordered" style="font-size:10px; margin:0;">
+                                    <thead>
+                                        <tr style="background:#5c3317; color:white;">
+                                            <th>Insumo</th>
+                                            <th style="width:70px;">Tipo</th>
+                                            <th style="width:80px;">Etapa</th>
+                                            <th class="text-right" style="width:80px;">Cant. Usada</th>
+                                            <th class="text-right" style="width:80px;">Cant. Plan.</th>
+                                            <th class="text-right" style="width:65px;">Desv.</th>
+                                            <th class="text-center" style="width:55px;">Conforme</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="lote.trazabilidad_ids" t-as="ins">
+                                            <tr t-att-style="'background:#fff5f5;' if not ins.conforme else ''">
+                                                <td><strong><t t-esc="ins.product_id.name"/></strong></td>
+                                                <td><span style="background:#f0e8e0; color:#5c3317; padding:1px 4px; border-radius:2px; font-size:9px; font-weight:bold;"><t t-esc="ins.tipo_insumo"/></span></td>
+                                                <td style="color:#666;"><t t-esc="ins.etapa_uso"/></td>
+                                                <td class="text-right"><t t-esc="ins.cantidad_usada"/> <t t-esc="ins.uom_id.name"/></td>
+                                                <td class="text-right" style="color:#888;"><t t-esc="'%.1f' % ins.cantidad_planificada if ins.cantidad_planificada else '—'"/></td>
+                                                <td class="text-right">
+                                                    <t t-if="ins.desviacion">
+                                                        <span t-att-style="'font-weight:bold; color:' + ('#c0392b' if abs(ins.desviacion) > 10 else '#d68910' if abs(ins.desviacion) > 5 else '#1e8449')">
+                                                            <t t-esc="'%.1f' % ins.desviacion"/>%
+                                                        </span>
+                                                    </t>
+                                                    <t t-else=""><span style="color:#aaa;">—</span></t>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span t-att-style="'font-weight:bold; font-size:13px; color:' + ('#1e8449' if ins.conforme else '#c0392b')">
+                                                        <t t-if="ins.conforme">✓</t><t t-else="">✗</t>
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </t>
+
+                        <!-- ══ CONTROLES DE CALIDAD ══ -->
+                        <t t-if="lote.control_calidad_ids">
+                            <div style="margin-bottom:16px;">
+                                <div style="font-size:11px; font-weight:bold; color:#5c3317; text-transform:uppercase; letter-spacing:1px; border-left:3px solid #f4a261; padding-left:8px; margin-bottom:6px;">
+                                    Controles de Calidad <span style="color:#888; font-weight:normal;">(<t t-esc="len(lote.control_calidad_ids)"/> registros)</span>
+                                </div>
+                                <table class="table table-sm table-bordered" style="font-size:10px; margin:0;">
+                                    <thead>
+                                        <tr style="background:#5c3317; color:white;">
+                                            <th style="width:80px;">Fecha</th>
+                                            <th>Etapa</th>
+                                            <th class="text-center" style="width:60px;">Temp. °C</th>
+                                            <th class="text-center" style="width:40px;">T° ✓</th>
+                                            <th class="text-center" style="width:50px;">pH</th>
+                                            <th class="text-center" style="width:40px;">pH ✓</th>
+                                            <th class="text-center" style="width:60px;">Densidad</th>
+                                            <th class="text-center" style="width:55px;">ABV Est.</th>
+                                            <th class="text-center" style="width:70px;">Resultado</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="lote.control_calidad_ids" t-as="ctrl">
+                                            <tr t-att-style="'background:#fff5f5;' if ctrl.resultado_general == 'rechazado' else ''">
+                                                <td><t t-esc="ctrl.fecha_control.strftime('%d/%m/%Y') if ctrl.fecha_control else '—'"/></td>
+                                                <td style="color:#555;"><t t-esc="ctrl.etapa_control"/></td>
+                                                <td class="text-center"><t t-esc="ctrl.temperatura or '—'"/></td>
+                                                <td class="text-center">
+                                                    <t t-if="ctrl.temperatura_min and ctrl.temperatura_max">
+                                                        <span t-att-style="'font-weight:bold; color:' + ('#1e8449' if ctrl.temperatura_ok else '#c0392b')">
+                                                            <t t-if="ctrl.temperatura_ok">✓</t><t t-else="">✗</t>
+                                                        </span>
+                                                    </t>
+                                                    <t t-else=""><span style="color:#aaa;">—</span></t>
+                                                </td>
+                                                <td class="text-center"><t t-esc="ctrl.ph or '—'"/></td>
+                                                <td class="text-center">
+                                                    <t t-if="ctrl.ph_min and ctrl.ph_max">
+                                                        <span t-att-style="'font-weight:bold; color:' + ('#1e8449' if ctrl.ph_ok else '#c0392b')">
+                                                            <t t-if="ctrl.ph_ok">✓</t><t t-else="">✗</t>
+                                                        </span>
+                                                    </t>
+                                                    <t t-else=""><span style="color:#aaa;">—</span></t>
+                                                </td>
+                                                <td class="text-center"><t t-esc="ctrl.densidad or '—'"/></td>
+                                                <td class="text-center"><t t-esc="'%.2f' % ctrl.abv_estimado if ctrl.abv_estimado else '—'"/>%</td>
+                                                <td class="text-center">
+                                                    <t t-set="r_bg" t-value="'#1e8449' if ctrl.resultado_general == 'aprobado' else '#c0392b' if ctrl.resultado_general == 'rechazado' else '#d68910'"/>
+                                                    <span t-att-style="'background:' + r_bg + '; color:white; padding:1px 5px; border-radius:2px; font-size:9px; font-weight:bold; text-transform:uppercase;'">
+                                                        <t t-esc="ctrl.resultado_general"/>
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                            <t t-if="ctrl.accion_correctiva">
+                                                <tr style="background:#fff8f0;">
+                                                    <td colspan="9" style="font-size:9px; color:#c0392b; padding-left:14px; font-style:italic;">
+                                                        ⚠ Acción correctiva: <t t-esc="ctrl.accion_correctiva"/>
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </t>
+
+                        <!-- ══ NOTAS ══ -->
+                        <t t-if="lote.notas_produccion">
+                            <div style="margin-bottom:16px;">
+                                <div style="font-size:11px; font-weight:bold; color:#5c3317; text-transform:uppercase; letter-spacing:1px; border-left:3px solid #f4a261; padding-left:8px; margin-bottom:6px;">Notas de Producción</div>
+                                <p style="background:#fef3e2; border-left:3px solid #f4a261; padding:10px 14px; font-style:italic; color:#555; margin:0; font-size:11px; border-radius:0 4px 4px 0;">
+                                    <t t-esc="lote.notas_produccion"/>
+                                </p>
+                            </div>
+                        </t>
+
+                        <!-- ══ FIRMAS ══ -->
+                        <div class="row" style="margin-top:32px;">
+                            <div class="col-4 text-center">
+                                <div style="border-top:1.5px solid #5c3317; padding-top:6px; margin-top:40px;">
+                                    <div style="font-size:10px; color:#5c3317; font-weight:bold; text-transform:uppercase; letter-spacing:1px;">Maestro Cervecero</div>
+                                </div>
+                            </div>
+                            <div class="col-4 text-center">
+                                <div style="border-top:1.5px solid #5c3317; padding-top:6px; margin-top:40px;">
+                                    <div style="font-size:10px; color:#5c3317; font-weight:bold; text-transform:uppercase; letter-spacing:1px;">Control de Calidad</div>
+                                </div>
+                            </div>
+                            <div class="col-4 text-center">
+                                <div style="border-top:1.5px solid #5c3317; padding-top:6px; margin-top:40px;">
+                                    <div style="font-size:10px; color:#5c3317; font-weight:bold; text-transform:uppercase; letter-spacing:1px;">Gerencia</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ══ PIE ══ -->
+                        <div style="text-align:center; font-size:8px; color:#bbb; border-top:1px solid #eee; padding-top:6px; margin-top:16px; letter-spacing:1px;">
+                            <t t-esc="res_company.name"/> · CERVECERÍA ARTESANAL · REGISTRO DE LOTE · <t t-esc="lote.name"/>
+                        </div>
+
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>
